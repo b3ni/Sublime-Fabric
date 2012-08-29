@@ -13,4 +13,11 @@ Once you install Package Control, restart ST2 and bring up the Command Palette (
 
 Select "**Fabric: Execute Task**", and a task to execute.
 
+Contacts
+--------
 
+Sublime Fabric is written by:
+
+* Benito Rodriguez - brarcos@gmail.com
+
+Suggestions, bugs,... https://github.com/b3ni/Sublime-Fabric/issues
