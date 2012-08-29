@@ -1,7 +1,7 @@
 Sublime Fabric
 ==============
 
-Sublime Text 2 plugin for running tasks Fabric / Python. 
+[Sublime Text 2](http://www.sublimetext.com/) plugin for running tasks [Fabric](https://github.com/fabric/fabric). 
 
 Lets run Fabric-Tasks directly from Sublime.
 
