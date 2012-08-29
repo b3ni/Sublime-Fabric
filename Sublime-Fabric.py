@@ -1,7 +1,7 @@
 # Fabric.py
 # Sublime-Fabric excute task Fabric for Sublime Text 2
 #
-# Project: https://github.com/lunixbochs/sublimelint
+# Project: https://github.com/b3ni/Sublime-Fabric
 # License: MIT
 
 import sublime
