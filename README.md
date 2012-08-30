@@ -5,6 +5,10 @@ Sublime Fabric
 
 Lets run Fabric-Tasks directly from Sublime.
 
+![Fabric File](http://img52.imageshack.us/img52/2306/readetrabajo1001b.png)
+
+![Execute Tasks](http://img824.imageshack.us/img824/974/readetrabajo1002.png)
+
 Installing
 ----------
 **With the Package Control plugin:** The easiest way to install SublimeLinter is through Package Control, which can be found at this site: http://wbond.net/sublime_packages/package_control
