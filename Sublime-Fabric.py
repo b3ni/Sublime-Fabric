@@ -27,8 +27,7 @@ def do_when(conditional, callback, *args, **kwargs):
 def _make_text_safeish(text, fallback_encoding, method='decode'):
     # The unicode decode here is because sublime converts to unicode inside
     # insert in such a way that unknown characters will cause errors, which is
-    # distinctly non-ideal... and there's no way to tell what's coming out of
-    # git in output. So...
+    # distinctly non-ideal...
     try:
         unitext = getattr(text, method)('utf-8')
     except (UnicodeEncodeError, UnicodeDecodeError):
@@ -75,7 +74,7 @@ class CommandThread(threading.Thread):
             main_thread(self.on_done, e.returncode)
         except OSError, e:
             if e.errno == 2:
-                main_thread(sublime.error_message, "Git binary could not be found in PATH\n\nConsider using the git_command setting for the Git plugin\n\nPATH is: %s" % os.environ['PATH'])
+                main_thread(sublime.error_message, "binary could not be found in PATH\n\nPATH is: %s" % os.environ['PATH'])
             else:
                 raise e
 
@@ -92,13 +91,6 @@ class Command(object):
         if 'fallback_encoding' not in kwargs and self.active_view() and self.active_view().settings().get('fallback_encoding'):
             kwargs['fallback_encoding'] = self.active_view().settings().get('fallback_encoding').rpartition('(')[2].rpartition(')')[0]
 
-        s = sublime.load_settings("Git.sublime-settings")
-        if s.get('save_first') and self.active_view() and self.active_view().is_dirty() and not no_save:
-            self.active_view().run_command('save')
-        if command[0] == 'git' and s.get('git_command'):
-            command[0] = s.get('git_command')
-        if command[0] == 'git-flow' and s.get('git_flow_command'):
-            command[0] = s.get('git_flow_command')
         if not callback:
             callback = self.generic_done
 
@@ -121,12 +113,9 @@ class Command(object):
                 do_when(lambda: not self.active_view().is_loading(), lambda: self.active_view().set_viewport_position(position, False))
                 # self.active_view().show(position)
 
-        view = self.active_view()
-        if view and view.settings().get('live_git_annotations'):
-            self.view.run_command('git_annotate')
-
         if not result.strip():
             return
+
         self.panel(result)
 
     def _output_to_view(self, output_file, output, clear=False,
@@ -152,11 +141,11 @@ class Command(object):
 
     def panel(self, output, **kwargs):
         if not hasattr(self, 'output_view'):
-            self.output_view = self.get_window().get_output_panel("git")
+            self.output_view = self.get_window().get_output_panel("fabric")
         self.output_view.set_read_only(False)
         self._output_to_view(self.output_view, output, clear=True, **kwargs)
         self.output_view.set_read_only(True)
-        self.get_window().run_command("show_panel", {"panel": "output.git"})
+        self.get_window().run_command("show_panel", {"panel": "output.fabric"})
 
     def quick_panel(self, *args, **kwargs):
         self.get_window().show_quick_panel(*args, **kwargs)
@@ -182,9 +171,6 @@ class WindowCommand(Command, sublime_plugin.WindowCommand):
     def get_file_name(self):
         return ''
 
-    # If there is a file in the active view use that file's directory to
-    # search for the Git root.  Otherwise, use the only folder that is
-    # open.
     def get_working_dir(self):
         file_name = self._active_file_name()
         if file_name:
