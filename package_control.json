@@ -1,0 +1,20 @@
+{
+    "schema_version": "1.1",
+    "packages": [
+        {
+            "name": "Sublime-Fabric",
+            "description": "Excute task Fabric for Sublime Text 2",
+            "author": "Benito Rodriguez",
+            "homepage": "https://github.com/b3ni/Sublime-Fabric",
+            "last_modified": "2012-10-09 17:59",
+            "platforms": {
+                "*": [
+                    {
+                        "version": "0.1",
+                        "url": "https://github.com/b3ni/Sublime-Fabric/zipball/v0.1"
+                    }
+                ]
+            }
+        }
+    ]
+}

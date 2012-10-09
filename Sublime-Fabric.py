@@ -187,7 +187,6 @@ class WindowCommand(Command, sublime_plugin.WindowCommand):
 
 class FabricListTaskCommand(WindowCommand):
     def run(self):
-        print "wor", self.get_working_dir()
         self.run_command(['fab', '-l', '-F', 'short'], self.list_task_done, working_dir=self.get_working_dir())
 
     def list_task_done(self, result):
