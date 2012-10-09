@@ -210,7 +210,7 @@ class FabricListTaskCommand(WindowCommand):
         if 0 > picked < len(self.results):
             return
         picked_task = self.results[picked]
-        self.run_command(['fab', picked_task], self.task_done)
+        self.run_command(['fab', '--abort-on-prompts', picked_task], self.task_done)
 
     def task_done(self, result):
         if not result.strip():

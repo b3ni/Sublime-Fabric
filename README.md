@@ -1,9 +1,13 @@
 Sublime Fabric
 ==============
 
-[Sublime Text 2](http://www.sublimetext.com/) plugin for running tasks [Fabric](https://github.com/fabric/fabric). 
+[Sublime Text 2](http://www.sublimetext.com/) plugin for running tasks of [Fabric](https://github.com/fabric/fabric). 
 
 Lets run Fabric-Tasks directly from Sublime.
+
+![Fabric File](http://img52.imageshack.us/img52/2306/readetrabajo1001b.png)
+
+![Execute Tasks](http://img824.imageshack.us/img824/974/readetrabajo1002.png)
 
 Installing
 ----------
