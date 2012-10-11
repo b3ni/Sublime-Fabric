@@ -1,0 +1,3 @@
+Sublime-Fabric 0.1 changelog
+
+Upload messages.json and package_control.json
