@@ -1,0 +1,3 @@
+Sublime-Fabric 0.3 changelog
+
+- Error subprocess
