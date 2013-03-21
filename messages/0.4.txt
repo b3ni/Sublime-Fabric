@@ -1,0 +1,3 @@
+Sublime-Fabric 0.4 changelog
+
+- Error call command

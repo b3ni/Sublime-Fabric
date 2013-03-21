@@ -1,6 +1,6 @@
 [
     {
         "caption": "Fabric: Execute Task",
-        "command": "fabric_list_task"
+        "command": "fab_tasks"
     }
 ]
