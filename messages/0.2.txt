@@ -1,0 +1,4 @@
+Sublime-Fabric 0.2 changelog
+
+- Read fabfiles of all folders
+- Open a windows with the result of fabric command

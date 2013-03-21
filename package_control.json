@@ -10,8 +10,8 @@
             "platforms": {
                 "*": [
                     {
-                        "version": "0.1",
-                        "url": "https://github.com/b3ni/Sublime-Fabric/zipball/v0.1"
+                        "version": "0.2",
+                        "url": "https://github.com/b3ni/Sublime-Fabric/zipball/v0.2"
                     }
                 ]
             }
