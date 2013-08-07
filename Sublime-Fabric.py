@@ -1,3 +1,4 @@
+import os
 import sublime
 import sublime_plugin
 import threading
@@ -40,9 +41,9 @@ def read_output(queue, encoding):
 
 
 class TaskFabric(object):
-    def __init__(self, window, encoding, path, task):
+    def __init__(self, command, encoding, path, task):
         super(TaskFabric, self).__init__()
-        self.window = window
+        self.window = command.window
         self.encoding = encoding
 
         self.view = self.window.new_file()
@@ -57,7 +58,7 @@ class TaskFabric(object):
         self.view.set_name("[FABRIC] [%s]" % task)
 
         # ejecutamos proceso
-        self.fab = fabprocess.ProcessFab(path, task, encoding)
+        self.fab = fabprocess.ProcessFab(path, task, encoding, command.env)
 
         # ejecutamos hebra de lectura
         self.q = Queue()
@@ -109,8 +110,8 @@ class TaskManager(object):
     def __init__(self):
         self._task = {}
 
-    def run_task(self, window, encoding, path, task_name):
-        t = TaskFabric(window, encoding, path, task_name)
+    def run_task(self, command, encoding, path, task_name):
+        t = TaskFabric(command, encoding, path, task_name)
         self._task[t.view.id()] = t
 
     def close(self, view):
@@ -119,14 +120,23 @@ class TaskManager(object):
             t.close()
             del self._task[view.id()]
 
+
 manager = TaskManager()
 
 
 class FabTasksCommand(sublime_plugin.WindowCommand):
     def __init__(self, *args, **kwargs):
         super(FabTasksCommand, self).__init__(*args, **kwargs)
-        self._view = None
+        self.view = self.window.active_view()
         self._output_end = None
+        self.update_env()
+
+    def update_env(self):
+        env = os.environ.copy()
+        venv_folder = self.view.settings().get('venv_folder', 'venv')
+        make_path = lambda f: os.path.join(f, venv_folder, 'bin')
+        env['PATH'] = '%s:%s' % (':'.join(map(make_path, self.window.folders())), env['PATH'])
+        self.env = env
 
     def run(self, **kwargs):
         self.find_tasks_fabric_files()
@@ -140,14 +150,15 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
     def execute(self, index):
         if index != -1:
             path, task_name = self.tasks[index][0], self.tasks[index][2]
-            manager.run_task(self.window, 'utf-8', path, task_name)
+            manager.run_task(self, 'utf-8', path, task_name)
 
     def find_tasks_fabric_files(self):
-        fabfiles = [subprocess.Popen(['find', folder, '-name', 'fabfile.py'], stdout=subprocess.PIPE).stdout.read() for folder in self.window.folders()]
+        popen_params = dict(stdout=subprocess.PIPE, env=self.env)
+        fabfiles = [subprocess.Popen(['find', folder, '-name', 'fabfile.py'], **popen_params).stdout.read() for folder in self.window.folders()]
 
         self.tasks = []
         for f in [f.replace('\n', '') for f in fabfiles if len(f)]:
-            ft = subprocess.Popen(['fab', '-l', '-F', 'short', '-f', f], stdout=subprocess.PIPE).stdout.read().split('\n')
+            ft = subprocess.Popen(['fab', '-l', '-F', 'short', '-f', f], **popen_params).stdout.read().split('\n')
             ft = filter(lambda x: len(x), ft)
 
             if len(ft):

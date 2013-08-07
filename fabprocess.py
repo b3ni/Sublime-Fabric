@@ -3,7 +3,7 @@ import sys
 
 
 class ProcessFab(object):
-    def __init__(self, path, task, encoding):
+    def __init__(self, path, task, encoding, env):
         super(ProcessFab, self).__init__()
         self.path = path
         self.task = task
@@ -14,7 +14,8 @@ class ProcessFab(object):
                 close_fds='posix' in sys.builtin_module_names,
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE)
+                stdout=subprocess.PIPE,
+                env=env)
 
     def read_data(self):
         return self.popen.stdout.read(1)
