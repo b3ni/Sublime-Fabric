@@ -5,7 +5,7 @@ import sublime_plugin
 import threading
 import fabprocess
 import subprocess
-from cache import cache
+from fabric_wrapper import fabric_wrapper
 from Queue import Queue, Empty
 from codecs import getincrementaldecoder
 
@@ -129,7 +129,7 @@ manager = TaskManager()
 
 class FabTasksCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
-        cache.set_folders(self.window.folders())
+        fabric_wrapper.set_folders(self.window.folders())
         self.find_tasks_fabric_files()
 
         if len(self.tasks):
@@ -147,8 +147,8 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
     def find_tasks_fabric_files(self):
         self.tasks = []
 
-        for f in cache.fabfiles:
-            ft = cache.get_tasks(f)
+        for f in fabric_wrapper.fabfiles:
+            ft = fabric_wrapper.get_tasks(f)
 
             if not ft:
                 continue

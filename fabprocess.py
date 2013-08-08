@@ -2,7 +2,7 @@
 import sys
 import subprocess
 
-from cache import cache
+from fabric_wrapper import fabric_wrapper
 
 
 class ProcessFab(object):
@@ -11,7 +11,7 @@ class ProcessFab(object):
         self.path = path
         self.task = task
 
-        query = [cache.fab, self.task, '-f', self.path]
+        query = [fabric_wrapper.fab, self.task, '-f', self.path]
         params = dict(bufsize=1, close_fds='posix' in sys.builtin_module_names,
                       stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
                       stdout=subprocess.PIPE)
@@ -21,19 +21,10 @@ class ProcessFab(object):
     def read_data(self):
         return self.popen.stdout.read(1)
 
-    def write_data(self, data):
-        (bytes, how_many) = self.encoder(data)
-
-        si = self.popen.stdin
-        si.write(bytes)
-        si.flush()
-
     def is_alive(self):
         s = self.popen.poll()
-        print "is_alive?", s
         return s is None
 
     def kill(self):
-        print "termina processes"
         self.popen.kill()
         self.popen.terminate()
