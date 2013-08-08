@@ -1,21 +1,22 @@
-import subprocess
 import sys
+import subprocess
+
+from cache import cache
 
 
 class ProcessFab(object):
-    def __init__(self, path, task, encoding, env):
+    def __init__(self, path, task, encoding):
         super(ProcessFab, self).__init__()
         self.path = path
         self.task = task
 
         self.popen = subprocess.Popen(
-                ['fab', self.task, '-f', self.path],
+                [cache.fab, self.task, '-f', self.path],
                 bufsize=1,
                 close_fds='posix' in sys.builtin_module_names,
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                env=env)
+                stdout=subprocess.PIPE)
 
     def read_data(self):
         return self.popen.stdout.read(1)
