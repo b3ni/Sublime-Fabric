@@ -148,10 +148,8 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
         self.tasks = []
 
         for f in cache.fabfiles:
-            # TODO: also use cache for commands
-            ft = subprocess.Popen([cache.fab, '-l', '-F', 'short', '-f', f],
-                                  stdout=subprocess.PIPE).stdout.read()
-            ft = filter(lambda x: len(x), ft.split('\n'))
+            ft = cache.get_tasks(f)
+
             if not ft:
                 continue
 

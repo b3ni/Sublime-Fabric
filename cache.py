@@ -10,6 +10,7 @@ class FabricCache(object):
     def __init__(self):
         self._fab = {}
         self._fabfiles = {}
+        self._tasks = {}
         self._key = None
 
     @property
@@ -63,5 +64,17 @@ class FabricCache(object):
         map(fabfiles.extend, self._find('fabfile.py'))
         return filter(None, fabfiles)
 
+    def get_tasks(self, fabfile_name):
+        if self._tasks.get(fabfile_name):
+            time, tasks = self._tasks[fabfile_name]
+            if time >= os.stat(fabfile_name).st_mtime:
+                return tasks
+
+        ft = subprocess.Popen([self.fab, '--shortlist', '-f', fabfile_name],
+                              stdout=subprocess.PIPE).stdout.read()
+        ft = filter(None, ft.split('\n'))
+        self._tasks[fabfile_name] = (os.stat(fabfile_name).st_mtime, ft)
+
+        return self._tasks[fabfile_name][1]
 
 cache = FabricCache()
