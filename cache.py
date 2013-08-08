@@ -3,7 +3,10 @@ import os
 import subprocess
 
 
-class Cache(object):
+class FabricCache(object):
+    """
+    Simple cache object for hold path to fab bin, and found fabfiles.
+    """
     def __init__(self):
         self._fab = {}
         self._fabfiles = {}
@@ -19,6 +22,9 @@ class Cache(object):
 
     @property
     def key(self):
+        """
+        From project folders name
+        """
         if not self._key:
             _ = lambda f: os.path.split(os.path.normpath(f))[-1]
             self._key = ':'.join(_(f) for f in self.folders)
@@ -58,4 +64,4 @@ class Cache(object):
         return filter(None, fabfiles)
 
 
-cache = Cache()
+cache = FabricCache()

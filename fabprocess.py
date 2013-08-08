@@ -1,3 +1,4 @@
+# coding: utf-8
 import sys
 import subprocess
 
@@ -10,13 +11,12 @@ class ProcessFab(object):
         self.path = path
         self.task = task
 
-        self.popen = subprocess.Popen(
-                [cache.fab, self.task, '-f', self.path],
-                bufsize=1,
-                close_fds='posix' in sys.builtin_module_names,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE)
+        query = [cache.fab, self.task, '-f', self.path]
+        params = dict(bufsize=1, close_fds='posix' in sys.builtin_module_names,
+                      stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
+                      stdout=subprocess.PIPE)
+
+        self.popen = subprocess.Popen(query, **params)
 
     def read_data(self):
         return self.popen.stdout.read(1)
