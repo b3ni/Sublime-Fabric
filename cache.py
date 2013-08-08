@@ -36,7 +36,8 @@ class Cache(object):
         """
         for folder in self.folders:
             params = ['find', folder, '-name', filename]
-            stdout = subprocess.Popen(params, stdout=subprocess.PIPE).stdout.read()
+            stdout = subprocess.Popen(params,
+                                      stdout=subprocess.PIPE).stdout.read()
             found = stdout.split('\n')
             if found:
                 yield found
@@ -46,14 +47,12 @@ class Cache(object):
         self._key = None
 
     def find_fab(self):
-        print 'Find fab file!'
         try:
             return self._find('fab').next()[0]
         except StopIteration:
             return False
 
     def find_fabfiles(self):
-        print 'Find fabfiles!'
         fabfiles = []
         map(fabfiles.extend, self._find('fabfile.py'))
         return filter(None, fabfiles)
