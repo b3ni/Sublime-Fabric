@@ -29,7 +29,7 @@ class FabricWrapper(object):
 
     def _get(self, filename):
         """
-        Find first fab bin in given folders.
+        Find and return (per folder) `filename` in project folders.
         """
         for folder in self.folders:
             params = ['find', folder, '-name', filename]
