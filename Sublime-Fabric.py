@@ -146,15 +146,18 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
 
     def find_tasks_fabric_files(self):
         self.tasks = []
+
         for f in cache.fabfiles:
             # TODO: also use cache for commands
             ft = subprocess.Popen([cache.fab, '-l', '-F', 'short', '-f', f],
                                   stdout=subprocess.PIPE).stdout.read()
             ft = filter(lambda x: len(x), ft.split('\n'))
+            if not ft:
+                continue
 
-            if len(ft):
-                name = f.split('/')[-2]
-                self.tasks += zip([f] * len(ft), [name] * len(ft), ft)
+            name = os.path.split(os.path.dirname(f))[-1]
+            l = len(f)
+            self.tasks += zip([f] * l, [name] * l, ft)
 
 
 class Listener(sublime_plugin.EventListener):
