@@ -17,7 +17,8 @@ class FabricWrapper(object):
     @property
     def fab(self):
         try:
-            return self._get('fab').next()[0]
+            exefab = self._get('fab').next()[0]
+            return exefab if exefab != '' else 'fab'
         except StopIteration:
             return 'fab'
 
