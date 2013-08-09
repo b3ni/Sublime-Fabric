@@ -6,12 +6,12 @@
             "description": "Excute task Fabric for Sublime Text 2",
             "author": "Benito Rodriguez",
             "homepage": "https://github.com/b3ni/Sublime-Fabric",
-            "last_modified": "2013-03-21 11:21",
+            "last_modified": "2013-09-09 16:57",
             "platforms": {
                 "*": [
                     {
-                        "version": "0.4",
-                        "url": "https://github.com/b3ni/Sublime-Fabric/zipball/v0.4"
+                        "version": "0.5",
+                        "url": "https://github.com/b3ni/Sublime-Fabric/zipball/v0.5"
                     }
                 ]
             }

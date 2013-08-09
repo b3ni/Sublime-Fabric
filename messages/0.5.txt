@@ -1,0 +1,5 @@
+Sublime-Fabric 0.5 changelog
+
+- Virtualenv support. By https://github.com/zerc
+- Add cache for tasks in fabfiles. By https://github.com/zerc
+- Show error not fab files found.
