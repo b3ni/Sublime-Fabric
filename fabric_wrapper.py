@@ -3,6 +3,12 @@ import os
 import subprocess
 
 
+class TaskException(Exception):
+    """
+    Raised when cant get tasks from fabfile.
+    """
+
+
 class FabricWrapper(object):
     """
     Wrapper around some fabric apis.
@@ -50,9 +56,16 @@ class FabricWrapper(object):
             if time >= os.stat(fabfile_name).st_mtime:
                 return tasks
 
-        ft = subprocess.Popen([self.fab, '--shortlist', '-f', fabfile_name],
-                              stdout=subprocess.PIPE).stdout.read()
-        ft = filter(None, ft.split('\n'))
+        result = subprocess.Popen(
+            [self.fab, '--shortlist', '-f', fabfile_name],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout, stderr = result.stdout.read(), result.stderr.read()
+
+        if stderr:
+            raise TaskException(stderr)
+
+        ft = filter(None, stdout.split('\n'))
         self._tasks[fabfile_name] = (os.stat(fabfile_name).st_mtime, ft)
 
         return self._tasks[fabfile_name][1]
