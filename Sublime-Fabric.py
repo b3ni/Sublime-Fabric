@@ -137,7 +137,7 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
             self.window.show_quick_panel(names_tasks, self.execute,
                                          sublime.MONOSPACE_FONT)
         else:
-            sublime.statusMessage('No fabfile.py found')
+            sublime.error_message('No fabfile.py found')
 
     def execute(self, index):
         if index != -1:
