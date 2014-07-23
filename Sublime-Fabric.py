@@ -8,7 +8,6 @@ try:
 except ImportError:
     from Queue import Queue, Empty
 from codecs import getincrementaldecoder
-
 try:
     from . import fabprocess
     from .fabric_wrapper import fabric_wrapper
@@ -40,10 +39,10 @@ def read_output(queue, encoding):
                 except Exception:
                     output = "[Fabric: decode error]\n"
                 return output, False
-            data += packet
+            data += decoder.decode(packet)
     except Empty:
         try:
-            output = decoder.decode(data)
+            output = data
         except Exception:
             output = "[Fabric: decode error]\n"
         return output, True
@@ -97,13 +96,9 @@ class TaskFabric(object):
             # escribimos en el buffer
             v = self.view
             v.set_read_only(False)
-            edit = v.begin_edit()
-            try:
-                v.insert(edit, self._output_end, data)
-                self._output_end += len(data)
-            finally:
-                v.end_edit(edit)
-                v.set_read_only(True)
+            v.run_command('task_view',
+                          {'data': data, 'output_end': self._output_end})
+            v.set_read_only(True)
             v.show(self.input_region)
 
         if is_still_working and not self._kill:
@@ -114,6 +109,16 @@ class TaskFabric(object):
         if self.fab.is_alive():
             self.fab.kill()
         self._kill = True
+
+
+class TaskViewCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit, data, output_end):
+        try:
+            self.view.insert(edit, output_end, data)
+        finally:
+            self.view.end_edit(edit)
+            self.view.set_read_only(True)
 
 
 class TaskManager(object):
