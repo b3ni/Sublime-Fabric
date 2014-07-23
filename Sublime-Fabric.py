@@ -3,11 +3,18 @@ import os
 import sublime
 import sublime_plugin
 import threading
-import fabprocess
-import subprocess
-from fabric_wrapper import fabric_wrapper
-from Queue import Queue, Empty
+try:
+    from queue import Queue, Empty
+except ImportError:
+    from Queue import Queue, Empty
 from codecs import getincrementaldecoder
+
+try:
+    from . import fabprocess
+    from .fabric_wrapper import fabric_wrapper
+except ValueError:
+    import fabprocess
+    from fabric_wrapper import fabric_wrapper
 
 
 def enqueue_output(process, queue):
@@ -146,7 +153,6 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
 
     def find_tasks_fabric_files(self):
         self.tasks = []
-
         for f in fabric_wrapper.fabfiles:
             ft = fabric_wrapper.get_tasks(f)
 

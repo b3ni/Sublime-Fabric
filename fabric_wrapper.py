@@ -23,7 +23,7 @@ class FabricWrapper(object):
     @property
     def fab(self):
         try:
-            exefab = self._get('fab').next()[0]
+            exefab = next(self._get('fab'))[0]
             return exefab if exefab != '' else 'fab'
         except StopIteration:
             return 'fab'
@@ -31,8 +31,9 @@ class FabricWrapper(object):
     @property
     def fabfiles(self):
         fabfiles = []
-        map(fabfiles.extend, self._get('fabfile.py'))
-        return filter(None, fabfiles)
+        for f in self._get('fabfile.py'):
+            fabfiles.extend(f)
+        return list(filter(None, fabfiles))
 
     def _get(self, filename):
         """
@@ -42,7 +43,7 @@ class FabricWrapper(object):
             params = ['find', folder, '-name', filename]
             stdout = subprocess.Popen(params,
                                       stdout=subprocess.PIPE).stdout.read()
-            found = stdout.split('\n')
+            found = stdout.decode().split('\n')
             if found:
                 yield found
 
@@ -63,9 +64,9 @@ class FabricWrapper(object):
         stdout, stderr = result.stdout.read(), result.stderr.read()
 
         if stderr:
-            raise TaskException(stderr)
+            raise TaskException(stderr.decode())
 
-        ft = filter(None, stdout.split('\n'))
+        ft = list(filter(None, stdout.decode().split('\n')))
         self._tasks[fabfile_name] = (os.stat(fabfile_name).st_mtime, ft)
 
         return self._tasks[fabfile_name][1]
