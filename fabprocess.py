@@ -2,7 +2,10 @@
 import sys
 import subprocess
 
-from fabric_wrapper import fabric_wrapper
+try:
+    from .fabric_wrapper import fabric_wrapper
+except ValueError:
+    from fabric_wrapper import fabric_wrapper
 
 
 class ProcessFab(object):
