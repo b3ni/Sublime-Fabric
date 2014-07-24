@@ -1,0 +1,4 @@
+Sublime-Fabric 0.6.0 changelog
+
+- Support SublimeText 3. By https://github.com/iurisilvio
+- Update config files from SublimeText 3

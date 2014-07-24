@@ -3,15 +3,15 @@
     "packages": [
         {
             "name": "Sublime-Fabric",
-            "description": "Excute task Fabric for Sublime Text 2",
+            "description": "Excute task Fabric for Sublime Text 2/3",
             "author": "Benito Rodriguez",
             "homepage": "https://github.com/b3ni/Sublime-Fabric",
-            "last_modified": "2013-09-09 16:57",
+            "last_modified": "2014-07-24 08:59",
             "platforms": {
                 "*": [
                     {
-                        "version": "0.5",
-                        "url": "https://github.com/b3ni/Sublime-Fabric/zipball/v0.5"
+                        "version": "0.6",
+                        "url": "https://github.com/b3ni/Sublime-Fabric/zipball/v0.6"
                     }
                 ]
             }
