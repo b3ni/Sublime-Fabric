@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import sys
 import subprocess
 
@@ -14,10 +15,13 @@ class ProcessFab(object):
         self.path = path
         self.task = task
 
-        query = [fabric_wrapper.fab, self.task, '-f', self.path]
-        params = dict(bufsize=1, close_fds='posix' in sys.builtin_module_names,
+        query = fabric_wrapper.run_command(self.path, self.task)
+        # PYTHONUNBUFFERED: fab writes to a pipe here, so without it the
+        # output would only show up when the task ends.
+        env = dict(os.environ, PYTHONUNBUFFERED='1')
+        params = dict(close_fds='posix' in sys.builtin_module_names,
                       stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
-                      stdout=subprocess.PIPE)
+                      stdout=subprocess.PIPE, env=env)
 
         self.popen = subprocess.Popen(query, **params)
 

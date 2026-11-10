@@ -5,6 +5,10 @@ Sublime Fabric
 
 Lets run Fabric-Tasks directly from Sublime.
 
+Works with Fabric 2 and 3, and with Fabric 1 (including the `Fabric3` fork).
+The version is detected from `fab --version`. Tasks of sub-collections are
+listed with their dotted name (`docs.build`).
+
 ![Fabric File](http://img52.imageshack.us/img52/2306/readetrabajo1001b.png)
 
 ![Execute Tasks](http://img824.imageshack.us/img824/974/readetrabajo1002.png)
