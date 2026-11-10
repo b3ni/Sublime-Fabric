@@ -84,7 +84,8 @@ class TaskFabric(object):
 
         # ejecutamos proceso antes de crear la vista, para no dejar una
         # vista vacía si `fab` no se puede ejecutar (OSError)
-        self.fab = fabprocess.ProcessFab(path, task, encoding, args)
+        self.fab = fabprocess.ProcessFab(
+            fabric_wrapper.run_command(path, task, args), encoding)
 
         self.view = self.window.new_file()
         self.view.settings().set("translate_tabs_to_spaces", False)
