@@ -177,21 +177,39 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
             fab_path=get_setting(self.window, 'fab_path'),
             search_virtualenv=get_setting(self.window, 'search_virtualenv',
                                           True))
+        fabfiles = fabric_wrapper.fabfiles
+        if not fabfiles:
+            sublime.error_message('No fabfile.py found')
+            return
+
         try:
-            self.find_tasks_fabric_files()
+            errors = self.find_tasks_fabric_files(fabfiles)
         except OSError as e:
             sublime.error_message(FAB_NOT_FOUND % (fabric_wrapper.fab, e))
             return
-        except TaskException as e:
-            sublime.error_message('Fabric: could not list tasks\n\n%s' % e)
-            return
+
+        # Full errors go to the console; the dialog shows the last line.
+        for path, error in errors:
+            print('Fabric: could not list tasks of %s\n%s' % (path, error))
+        summary = '\n\n'.join(
+            '%s:\n%s' % (path, (str(error).strip().splitlines() or [''])[-1])
+            for path, error in errors)
 
         if len(self.tasks):
+            if errors:
+                sublime.status_message(
+                    'Fabric: %d fabfile(s) could not be read, see the console'
+                    % len(errors))
             names_tasks = ["[%s]: %s" % x[1:] for x in self.tasks]
             self.window.show_quick_panel(names_tasks, self.execute,
                                          sublime.MONOSPACE_FONT)
+        elif errors:
+            sublime.error_message(
+                'Fabric: could not list tasks\n\n%s\n\n'
+                'Full output in the console (View > Show Console).' % summary)
         else:
-            sublime.error_message('No fabfile.py found')
+            sublime.error_message('Fabric: no tasks found in:\n\n' +
+                                  '\n'.join(fabfiles))
 
     def execute(self, index):
         if index != -1:
@@ -201,10 +219,20 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
             except OSError as e:
                 sublime.error_message(FAB_NOT_FOUND % (fabric_wrapper.fab, e))
 
-    def find_tasks_fabric_files(self):
+    def find_tasks_fabric_files(self, fabfiles):
+        """
+        Collect the tasks of every fabfile in self.tasks. A fabfile that
+        fails does not hide the tasks of the others: its error is returned
+        as a (path, TaskException) pair.
+        """
         self.tasks = []
-        for f in fabric_wrapper.fabfiles:
-            ft = fabric_wrapper.get_tasks(f)
+        errors = []
+        for f in fabfiles:
+            try:
+                ft = fabric_wrapper.get_tasks(f)
+            except TaskException as e:
+                errors.append((f, e))
+                continue
 
             if not ft:
                 continue
@@ -212,6 +240,7 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
             name = os.path.split(os.path.dirname(f))[-1]
             l = len(ft)
             self.tasks += zip([f] * l, [name] * l, ft)
+        return errors
 
 
 class FabEditSettingsCommand(sublime_plugin.WindowCommand):

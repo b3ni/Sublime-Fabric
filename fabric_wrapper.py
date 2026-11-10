@@ -1,5 +1,7 @@
 # coding: utf-8
+import json
 import os
+import re
 import subprocess
 
 
@@ -48,6 +50,28 @@ def is_runnable(path):
     return True
 
 
+def parse_fab_version(output):
+    """
+    Return Fabric's major version from `fab --version` output, or None.
+
+    Fabric 1 prints "Fabric 1.14.0", the Python 3 fork of Fabric 1 prints
+    "Fabric3 1.14.post1", and Fabric 2/3 print "Fabric 3.2.3".
+    """
+    match = re.match(r'\s*Fabric\d*\s+(\d+)', output)
+    return int(match.group(1)) if match else None
+
+
+def flatten_task_names(collection, prefix=''):
+    """
+    Return the task names of a `fab --list --list-format json` collection,
+    with sub-collection tasks dotted as the CLI expects ("docs.build").
+    """
+    names = [prefix + task['name'] for task in collection.get('tasks', [])]
+    for sub in collection.get('collections', []):
+        names.extend(flatten_task_names(sub, prefix + sub['name'] + '.'))
+    return names
+
+
 class FabricWrapper(object):
     """
     Wrapper around some fabric apis.
@@ -56,6 +80,7 @@ class FabricWrapper(object):
         self._tasks = {}
         self.folders = []
         self.fab = 'fab'
+        self._version = None
 
     def configure(self, folders, fab_path=None, search_virtualenv=True):
         """
@@ -63,6 +88,48 @@ class FabricWrapper(object):
         """
         self.folders = list(folders or [])
         self.fab = self.resolve_fab(fab_path, search_virtualenv)
+        self._version = None
+
+    @property
+    def version(self):
+        """
+        Major version of the configured `fab`, detected once per configure().
+
+        Anything that does not report itself as Fabric 1 is treated as
+        Fabric 2+, the only Fabric published since 2018.
+
+        Raises OSError if `fab` cannot be run.
+        """
+        if self._version is None:
+            process = subprocess.Popen(
+                [self.fab, '--version'],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, _ = process.communicate()
+            self._version = parse_fab_version(
+                stdout.decode('utf-8', 'replace')) or 2
+        return self._version
+
+    def list_command(self, fabfile):
+        """ Command line that lists the tasks of `fabfile`. """
+        if self.version == 1:
+            return [self.fab, '--shortlist', '-f', fabfile]
+        return self._fabfile_args(fabfile) + ['--list', '--list-format',
+                                              'json']
+
+    def run_command(self, fabfile, task):
+        """ Command line that runs `task` from `fabfile`. """
+        if self.version == 1:
+            return [self.fab, task, '-f', fabfile]
+        return self._fabfile_args(fabfile) + [task]
+
+    def _fabfile_args(self, fabfile):
+        """
+        Fabric 2+ has no -f/--fabfile: the folder to search and the module
+        name are given separately (-f now means --config).
+        """
+        folder, name = os.path.split(fabfile)
+        return [self.fab, '--search-root', folder,
+                '--collection', os.path.splitext(name)[0]]
 
     def resolve_fab(self, fab_path=None, search_virtualenv=True):
         """
@@ -127,15 +194,28 @@ class FabricWrapper(object):
                 return tasks
 
         result = subprocess.Popen(
-            [self.fab, '--shortlist', '-f', fabfile_name],
+            self.list_command(fabfile_name),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         stdout, stderr = result.communicate()
+        stdout = stdout.decode('utf-8', 'replace')
 
-        if stderr:
-            raise TaskException(stderr.decode())
+        # Only the exit code means failure: warnings on stderr (e.g.
+        # deprecation warnings from paramiko) must not hide the tasks.
+        if result.returncode != 0:
+            raise TaskException(
+                stderr.decode('utf-8', 'replace').strip() or stdout.strip())
 
-        ft = list(filter(None, stdout.decode().split('\n')))
+        if self.version == 1:
+            ft = [line.strip() for line in stdout.splitlines()
+                  if line.strip()]
+        else:
+            try:
+                ft = flatten_task_names(json.loads(stdout))
+            except (ValueError, KeyError, TypeError, AttributeError) as e:
+                raise TaskException(
+                    'Unexpected output from %s --list: %s' % (self.fab, e))
+
         self._tasks[key] = (os.stat(fabfile_name).st_mtime, ft)
 
         return ft
