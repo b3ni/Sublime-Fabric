@@ -17,6 +17,34 @@ Once you install Package Control, restart ST and bring up the Command Palette (`
 
 Select "**Fabric: Execute Task**", and a task to execute.
 
+Settings
+--------
+
+Open them with "**Preferences: Fabric Settings**" from the Command Palette.
+
+* `fab_path`: the `fab` executable to use. Leave it empty to look for `fab` in a
+  virtualenv of the project and otherwise use `fab` from the `PATH`. It can be
+  an absolute path (`/usr/local/bin/fab`), a path relative to the first project
+  folder (`.venv/bin/fab`) or a bare command name looked up on the `PATH`.
+* `search_virtualenv` (default `true`): when `fab_path` is empty, look for
+  `fab` in a `.venv`, `venv`, `env` or `.env` folder at the top level of each
+  project folder.
+
+If `fab` works in your terminal but not in Sublime Text, Sublime was probably
+started with a different `PATH`. Set `fab_path` to the full path printed by
+`which fab` (or `where fab` on Windows).
+
+To override a setting for one project, add it with a `fabric_` prefix to the
+`settings` section of the `.sublime-project` file:
+
+```json
+{
+    "settings": {
+        "fabric_fab_path": "~/.venvs/deploy/bin/fab"
+    }
+}
+```
+
 Contacts
 --------
 
