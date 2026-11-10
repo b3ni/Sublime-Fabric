@@ -21,6 +21,21 @@ Once you install Package Control, restart ST and bring up the Command Palette (`
 
 Select "**Fabric: Execute Task**", and a task to execute.
 
+To pass arguments to a task, use "**Fabric: Execute Task with Arguments**":
+after choosing the task, type its arguments. The panel remembers the last
+arguments used for each task. The syntax is the one of your Fabric version:
+
+* Fabric 2 and 3: as on the command line after the task name, e.g.
+  `--name=Ana` or `--name "Ana María"`. Parameters without a default value
+  can also be given by position: `Ana`.
+* Fabric 1: as after `task:`, e.g. `Ana` or `name=Ana,greeting=hi`.
+
+You can bind it to a key in your user key bindings:
+
+```json
+{ "keys": ["ctrl+alt+f"], "command": "fab_tasks", "args": {"ask_arguments": true} }
+```
+
 Settings
 --------
 

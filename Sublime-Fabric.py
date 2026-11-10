@@ -77,14 +77,14 @@ def read_output(queue, encoding):
 
 
 class TaskFabric(object):
-    def __init__(self, window, encoding, path, task):
+    def __init__(self, window, encoding, path, task, args=''):
         super(TaskFabric, self).__init__()
         self.window = window
         self.encoding = encoding
 
         # ejecutamos proceso antes de crear la vista, para no dejar una
         # vista vacía si `fab` no se puede ejecutar (OSError)
-        self.fab = fabprocess.ProcessFab(path, task, encoding)
+        self.fab = fabprocess.ProcessFab(path, task, encoding, args)
 
         self.view = self.window.new_file()
         self.view.settings().set("translate_tabs_to_spaces", False)
@@ -95,7 +95,8 @@ class TaskFabric(object):
         self.view.settings().set("auto_complete", False)
         self.view.set_scratch(True)
         self.view.set_read_only(True)
-        self.view.set_name("[FABRIC] [%s]" % task)
+        self.view.set_name("[FABRIC] [%s]" % " ".join(
+            filter(None, [task, (args or '').strip()])))
 
         # ejecutamos hebra de lectura
         self.q = Queue()
@@ -156,8 +157,8 @@ class TaskManager(object):
     def __init__(self):
         self._task = {}
 
-    def run_task(self, window, encoding, path, task_name):
-        t = TaskFabric(window, encoding, path, task_name)
+    def run_task(self, window, encoding, path, task_name, args=''):
+        t = TaskFabric(window, encoding, path, task_name, args)
         self._task[t.view.id()] = t
 
     def close(self, view):
@@ -169,9 +170,13 @@ class TaskManager(object):
 
 manager = TaskManager()
 
+# Last arguments typed for each (fabfile, task), to prefill the input panel.
+last_arguments = {}
+
 
 class FabTasksCommand(sublime_plugin.WindowCommand):
-    def run(self, **kwargs):
+    def run(self, ask_arguments=False, **kwargs):
+        self.ask_arguments = ask_arguments
         fabric_wrapper.configure(
             self.window.folders(),
             fab_path=get_setting(self.window, 'fab_path'),
@@ -212,12 +217,35 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
                                   '\n'.join(fabfiles))
 
     def execute(self, index):
-        if index != -1:
-            path, task_name = self.tasks[index][0], self.tasks[index][2]
-            try:
-                manager.run_task(self.window, 'utf-8', path, task_name)
-            except OSError as e:
-                sublime.error_message(FAB_NOT_FOUND % (fabric_wrapper.fab, e))
+        if index == -1:
+            return
+        path, task_name = self.tasks[index][0], self.tasks[index][2]
+        if self.ask_arguments:
+            # deferred: opening a panel from a quick panel callback can fail
+            sublime.set_timeout(
+                lambda: self.ask_for_arguments(path, task_name), 10)
+        else:
+            self.run_task(path, task_name)
+
+    def ask_for_arguments(self, path, task_name):
+        caption = 'Arguments for %s (e.g. %s):' % (
+            task_name, fabric_wrapper.arguments_example())
+        self.window.show_input_panel(
+            caption, last_arguments.get((path, task_name), ''),
+            lambda args: self.run_task(path, task_name, args), None, None)
+
+    def run_task(self, path, task_name, args=''):
+        try:
+            manager.run_task(self.window, 'utf-8', path, task_name, args)
+        except OSError as e:
+            sublime.error_message(FAB_NOT_FOUND % (fabric_wrapper.fab, e))
+            return
+        except ValueError as e:
+            sublime.error_message(
+                'Fabric: invalid arguments for %s\n\n%s' % (task_name, e))
+            return
+        if self.ask_arguments:
+            last_arguments[(path, task_name)] = args
 
     def find_tasks_fabric_files(self, fabfiles):
         """

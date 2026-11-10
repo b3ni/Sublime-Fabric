@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import shlex
 import subprocess
 
 
@@ -116,11 +117,29 @@ class FabricWrapper(object):
         return self._fabfile_args(fabfile) + ['--list', '--list-format',
                                               'json']
 
-    def run_command(self, fabfile, task):
-        """ Command line that runs `task` from `fabfile`. """
+    def run_command(self, fabfile, task, args=''):
+        """
+        Command line that runs `task` from `fabfile`, with the arguments
+        typed by the user in `args`, in the syntax of the Fabric version:
+
+        - Fabric 1: "arg1,key=value", passed as `task:arg1,key=value`.
+        - Fabric 2+: "--key=value", "value" or "-k value", split like a
+          shell would (quotes group words) and passed after the task.
+
+        Raises ValueError if `args` has unbalanced quotes (Fabric 2+).
+        """
+        args = (args or '').strip()
         if self.version == 1:
+            if args:
+                task = '%s:%s' % (task, args)
             return [self.fab, task, '-f', fabfile]
-        return self._fabfile_args(fabfile) + [task]
+        return self._fabfile_args(fabfile) + [task] + shlex.split(args)
+
+    def arguments_example(self):
+        """ Example of the argument syntax, for the input panel caption. """
+        if self.version == 1:
+            return 'arg1,key=value'
+        return '--key=value'
 
     def _fabfile_args(self, fabfile):
         """

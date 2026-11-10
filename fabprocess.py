@@ -10,12 +10,12 @@ except ValueError:
 
 
 class ProcessFab(object):
-    def __init__(self, path, task, encoding):
+    def __init__(self, path, task, encoding, args=''):
         super(ProcessFab, self).__init__()
         self.path = path
         self.task = task
 
-        query = fabric_wrapper.run_command(self.path, self.task)
+        query = fabric_wrapper.run_command(self.path, self.task, args)
         # PYTHONUNBUFFERED: fab writes to a pipe here, so without it the
         # output would only show up when the task ends.
         env = dict(os.environ, PYTHONUNBUFFERED='1')
