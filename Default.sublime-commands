@@ -4,6 +4,11 @@
         "command": "fab_tasks"
     },
     {
+        "caption": "Fabric: Execute Task with Arguments",
+        "command": "fab_tasks",
+        "args": {"ask_arguments": true}
+    },
+    {
         "caption": "Preferences: Fabric Settings",
         "command": "fab_edit_settings"
     }
