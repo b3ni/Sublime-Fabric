@@ -2,5 +2,9 @@
     {
         "caption": "Fabric: Execute Task",
         "command": "fab_tasks"
+    },
+    {
+        "caption": "Preferences: Fabric Settings",
+        "command": "fab_edit_settings"
     }
 ]

@@ -1,0 +1,25 @@
+{
+    // The `fab` executable used to list and run tasks.
+    //
+    //  - "" (empty): look for `fab` in a virtualenv of the project (see
+    //    "search_virtualenv"), and otherwise use `fab` from the PATH.
+    //  - An absolute path: "/usr/local/bin/fab", "~/.venvs/deploy/bin/fab".
+    //  - A relative path such as ".venv/bin/fab": resolved against the first
+    //    folder of the project.
+    //  - A bare name such as "fab3": looked up on the PATH.
+    //
+    // Sublime Text started from the desktop (macOS Dock, Windows Start menu)
+    // often has a shorter PATH than your terminal, so `fab` may work in the
+    // terminal and not here. Use an absolute path in that case.
+    //
+    // Per project: set "fabric_fab_path" in the "settings" section of the
+    // .sublime-project file.
+    "fab_path": "",
+
+    // When "fab_path" is empty, look for a runnable `fab` in a virtualenv at
+    // the top level of each project folder: .venv, venv, env or .env
+    // (bin/fab, or Scripts\fab.exe on Windows).
+    //
+    // Per project: "fabric_search_virtualenv".
+    "search_virtualenv": true
+}
