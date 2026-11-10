@@ -96,8 +96,10 @@ class TaskFabric(object):
             # escribimos en el buffer
             v = self.view
             v.set_read_only(False)
+            # añadimos al final del buffer, no en la posición 0
             v.run_command('task_view',
-                          {'data': data, 'output_end': self._output_end})
+                          {'data': data, 'output_end': v.size()})
+            self._output_end = v.size()
             v.set_read_only(True)
             v.show(self.input_region)
 
@@ -165,7 +167,7 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
                 continue
 
             name = os.path.split(os.path.dirname(f))[-1]
-            l = len(f)
+            l = len(ft)
             self.tasks += zip([f] * l, [name] * l, ft)
 
 
