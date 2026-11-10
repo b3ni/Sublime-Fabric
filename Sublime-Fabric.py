@@ -10,10 +10,38 @@ except ImportError:
 from codecs import getincrementaldecoder
 try:
     from . import fabprocess
-    from .fabric_wrapper import fabric_wrapper
+    from .fabric_wrapper import fabric_wrapper, TaskException
 except ValueError:
     import fabprocess
-    from fabric_wrapper import fabric_wrapper
+    from fabric_wrapper import fabric_wrapper, TaskException
+
+
+SETTINGS_FILE = 'Fabric.sublime-settings'
+
+FAB_NOT_FOUND = (
+    'Fabric: could not run "%s"\n\n%s\n\n'
+    'Set "fab_path" with the command "Preferences: Fabric Settings", '
+    'or "fabric_fab_path" in your .sublime-project settings.')
+
+
+def get_setting(window, key, default=None):
+    """
+    Read `key` from the project settings ("fabric_<key>" in the "settings"
+    section of the .sublime-project file), falling back to
+    Fabric.sublime-settings.
+    """
+    project_key = 'fabric_' + key
+    view = window.active_view()
+    if view is not None:
+        value = view.settings().get(project_key)
+        if value is not None:
+            return value
+    if hasattr(window, 'project_data'):
+        data = window.project_data() or {}
+        value = data.get('settings', {}).get(project_key)
+        if value is not None:
+            return value
+    return sublime.load_settings(SETTINGS_FILE).get(key, default)
 
 
 def enqueue_output(process, queue):
@@ -54,6 +82,10 @@ class TaskFabric(object):
         self.window = window
         self.encoding = encoding
 
+        # ejecutamos proceso antes de crear la vista, para no dejar una
+        # vista vacía si `fab` no se puede ejecutar (OSError)
+        self.fab = fabprocess.ProcessFab(path, task, encoding)
+
         self.view = self.window.new_file()
         self.view.settings().set("translate_tabs_to_spaces", False)
         self.view.settings().set("auto_indent", False)
@@ -64,9 +96,6 @@ class TaskFabric(object):
         self.view.set_scratch(True)
         self.view.set_read_only(True)
         self.view.set_name("[FABRIC] [%s]" % task)
-
-        # ejecutamos proceso
-        self.fab = fabprocess.ProcessFab(path, task, encoding)
 
         # ejecutamos hebra de lectura
         self.q = Queue()
@@ -143,8 +172,19 @@ manager = TaskManager()
 
 class FabTasksCommand(sublime_plugin.WindowCommand):
     def run(self, **kwargs):
-        fabric_wrapper.set_folders(self.window.folders())
-        self.find_tasks_fabric_files()
+        fabric_wrapper.configure(
+            self.window.folders(),
+            fab_path=get_setting(self.window, 'fab_path'),
+            search_virtualenv=get_setting(self.window, 'search_virtualenv',
+                                          True))
+        try:
+            self.find_tasks_fabric_files()
+        except OSError as e:
+            sublime.error_message(FAB_NOT_FOUND % (fabric_wrapper.fab, e))
+            return
+        except TaskException as e:
+            sublime.error_message('Fabric: could not list tasks\n\n%s' % e)
+            return
 
         if len(self.tasks):
             names_tasks = ["[%s]: %s" % x[1:] for x in self.tasks]
@@ -156,7 +196,10 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
     def execute(self, index):
         if index != -1:
             path, task_name = self.tasks[index][0], self.tasks[index][2]
-            manager.run_task(self.window, 'utf-8', path, task_name)
+            try:
+                manager.run_task(self.window, 'utf-8', path, task_name)
+            except OSError as e:
+                sublime.error_message(FAB_NOT_FOUND % (fabric_wrapper.fab, e))
 
     def find_tasks_fabric_files(self):
         self.tasks = []
@@ -169,6 +212,15 @@ class FabTasksCommand(sublime_plugin.WindowCommand):
             name = os.path.split(os.path.dirname(f))[-1]
             l = len(ft)
             self.tasks += zip([f] * l, [name] * l, ft)
+
+
+class FabEditSettingsCommand(sublime_plugin.WindowCommand):
+    """ Open the default and user Fabric settings side by side. """
+    def run(self):
+        package = __package__ or 'Sublime-Fabric'
+        self.window.run_command('edit_settings', {
+            'base_file': '${packages}/%s/%s' % (package, SETTINGS_FILE),
+            'default': '{\n\t$0\n}\n'})
 
 
 class Listener(sublime_plugin.EventListener):
