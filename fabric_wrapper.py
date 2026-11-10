@@ -22,11 +22,10 @@ class FabricWrapper(object):
 
     @property
     def fab(self):
-        try:
-            exefab = next(self._get('fab'))[0]
-            return exefab if exefab != '' else 'fab'
-        except StopIteration:
-            return 'fab'
+        # Igual que antes: solo se mira la primera carpeta del proyecto.
+        for found in self._get('fab'):
+            return found[0] if found else 'fab'
+        return 'fab'
 
     @property
     def fabfiles(self):
@@ -38,14 +37,16 @@ class FabricWrapper(object):
     def _get(self, filename):
         """
         Find and return (per folder) `filename` in project folders.
+
+        Uses os.walk instead of the Unix `find` command so it also works
+        on Windows, where `find` is an unrelated text-search tool.
         """
         for folder in self.folders:
-            params = ['find', folder, '-name', filename]
-            stdout = subprocess.Popen(params,
-                                      stdout=subprocess.PIPE).stdout.read()
-            found = stdout.decode().split('\n')
-            if found:
-                yield found
+            found = []
+            for root, dirs, files in os.walk(folder):
+                if filename in files:
+                    found.append(os.path.join(root, filename))
+            yield found
 
     def get_tasks(self, fabfile_name):
         """
